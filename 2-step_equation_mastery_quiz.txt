@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>2-Step Linear Equations Quiz (Mixed Forms)</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; }
+    button { margin: 5px 0; }
+    #feedback { margin-top: 10px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>2-Step Linear Equations Quiz (Mixed Forms)</h2>
+  <div id="quiz-container"></div>
+  <button id="next-btn" style="display:none;">Next</button>
+  <p id="score"></p>
+
+  <script>
+    function randInt(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // Generate equation of form: a*x + b = c  (b can be + or -)
+    function generateForm1() {
+      let a, b, c, x, equationStr;
+      while (true) {
+        a = randInt(-10, 10);
+        if (a === 0) continue;
+        x = randInt(-10, 10);
+        b = randInt(1, 20);
+        let plus = Math.random() < 0.5;
+        if (plus) {
+          c = a * x + b;
+          equationStr = `${a}x + ${b} = ${c}`;
+        } else {
+          c = a * x - b;
+          equationStr = `${a}x - ${b} = ${c}`;
+        }
+        if (Number.isInteger(x)) {
+          return { equationStr, solution: x };
+        }
+      }
+    }
+
+    // Generate equation of form: (x + a)/b = c  (a can be + or -)
+    function generateForm2() {
+      let a, b, c, x, equationStr;
+      while (true) {
+        b = randInt(1, 10);
+        c = randInt(-10, 10);
+        x = randInt(-10, 10);
+        a = randInt(1, 20);
+        let plus = Math.random() < 0.5;
+        if (plus) {
+          // (x + a)/b = c  => x + a = b*c  => x = b*c - a
+          if (x === b * c - a) {
+            equationStr = `(x + ${a}) / ${b} = ${c}`;
+            return { equationStr, solution: x };
+          }
+        } else {
+          // (x - a)/b = c  => x - a = b*c  => x = b*c + a
+          if (x === b * c + a) {
+            equationStr = `(x - ${a}) / ${b} = ${c}`;
+            return { equationStr, solution: x };
+          }
+        }
+      }
+    }
+
+    // Generate multiple choice options including correct answer
+    function generateChoices(correct) {
+      let choices = new Set();
+      choices.add(correct);
+      while (choices.size < 4) {
+        let choice = correct + randInt(-10, 10);
+        if (choice !== correct) choices.add(choice);
+      }
+      return Array.from(choices).sort(() => Math.random() - 0.5);
+    }
+
+    const totalQuestions = 10;
+    const questions = [];
+
+    for (let i = 0; i < 5; i++) {
+      // Randomly pick form 1 or form 2
+      let q = Math.random() < 0.5 ? generateForm1() : generateForm2();
+      let choices = generateChoices(q.solution);
+      questions.push({
+        type: 'multiple-choice',
+        questionText: `Solve for x: ${q.equationStr}`,
+        choices: choices.map(c => c.toString()),
+        correctAnswer: q.solution.toString()
+      });
+    }
+
+    for (let i = 0; i < 5; i++) {
+      let q = Math.random() < 0.5 ? generateForm1() : generateForm2();
+      questions.push({
+        type: 'fill-in',
+        questionText: `Solve for x: ${q.equationStr}`,
+        correctAnswer: q.solution.toString()
+      });
+    }
+
+    questions.sort(() => Math.random() - 0.5);
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const quizContainer = document.getElementById('quiz-container');
+    const nextBtn = document.getElementById('next-btn');
+    const scoreDisplay = document.getElementById('score');
+
+    function showQuestion() {
+      nextBtn.style.display = 'none';
+      const q = questions[currentQuestionIndex];
+      quizContainer.innerHTML = `<p><strong>Question ${currentQuestionIndex + 1} of ${totalQuestions}:</strong></p>
+                                 <p>${q.questionText}</p>
+                                 <div id="choices"></div>
+                                 <p id="feedback"></p>`;
+
+      if (q.type === 'multiple-choice') {
+        const choicesDiv = document.getElementById('choices');
+        q.choices.forEach(choice => {
+          const btn = document.createElement('button');
+          btn.textContent = choice;
+          btn.onclick = () => checkAnswer(choice);
+          choicesDiv.appendChild(btn);
+          choicesDiv.appendChild(document.createElement('br'));
+        });
+      } else if (q.type === 'fill-in') {
+        const choicesDiv = document.getElementById('choices');
+        choicesDiv.innerHTML = `<input type="text" id="answer" autocomplete="off" />
+                                <button onclick="submitFillIn()">Submit</button>`;
+      }
+    }
+
+    function checkAnswer(selected) {
+      const q = questions[currentQuestionIndex];
+      const feedback = document.getElementById('feedback');
+      if (selected === q.correctAnswer) {
+        feedback.textContent = 'Correct!';
+        score++;
+      } else {
+        feedback.textContent = `Incorrect. The correct answer is ${q.correctAnswer}.`;
+      }
+      disableButtons();
+      nextBtn.style.display = 'inline';
+    }
+
+    function submitFillIn() {
+      const q = questions[currentQuestionIndex];
+      const userAnswer = document.getElementById('answer').value.trim();
+      const feedback = document.getElementById('feedback');
+      if (userAnswer === q.correctAnswer) {
+        feedback.textContent = 'Correct!';
+        score++;
+      } else {
+        feedback.textContent = `Incorrect. The correct answer is ${q.correctAnswer}.`;
+      }
+      document.getElementById('answer').disabled = true;
+      nextBtn.style.display = 'inline';
+    }
+
+    function disableButtons() {
+      const buttons = document.querySelectorAll('#choices button');
+      buttons.forEach(btn => btn.disabled = true);
+    }
+
+    nextBtn.onclick = () => {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        quizContainer.innerHTML = `<h3>Quiz complete! Your score: ${score} / ${questions.length}</h3>`;
+        nextBtn.style.display = 'none';
+      }
+    };
+
+    showQuestion();
+  </script>
+</body>
+</html>
