@@ -1,0 +1,81 @@
+import random
+
+# List of possible scales
+scales = [1, 2, 5, 10, 20, 25, 50, 100, 200, 500, 0.1, 0.2, 0.25, 0.5]
+
+def format_scale(scale):
+    # Format scale nicely (avoid trailing zeros)
+    if scale < 1:
+        return f"{scale:.2f}".rstrip('0').rstrip('.')
+    else:
+        return str(scale)
+
+def generate_question(quadrants):
+    # Pick random scales for x and y
+    x_scale = random.choice(scales)
+    y_scale = random.choice(scales)
+
+    # Describe the grid range based on quadrants
+    if quadrants == 1:
+        x_range = f"0 to {format_scale(x_scale * 10)}"
+        y_range = f"0 to {format_scale(y_scale * 10)}"
+        quadrant_desc = "Quadrant 1 only (positive x and y)"
+    else:
+        x_range = f"{format_scale(-x_scale * 5)} to {format_scale(x_scale * 5)}"
+        y_range = f"{format_scale(-y_scale * 5)} to {format_scale(y_scale * 5)}"
+        quadrant_desc = "All four quadrants (negative and positive x and y)"
+
+    question_text = (
+        f"Identify the scale on the x-axis and y-axis for the following Cartesian coordinate grid:\n"
+        f"- {quadrant_desc}\n"
+        f"- x-axis range: {x_range}\n"
+        f"- y-axis range: {y_range}\n"
+        f"(Hint: The grid lines are evenly spaced according to the scale.)\n"
+        f"Question: What is the scale on the x-axis? What is the scale on the y-axis?"
+    )
+
+    return question_text, x_scale, y_scale
+
+def generate_axis_values_question():
+    # Pick random scales for x and y
+    x_scale = random.choice(scales)
+    y_scale = random.choice(scales)
+
+    # Number of intervals on each axis (choose 5 for simplicity)
+    intervals = 5
+
+    question_text = (
+        f"Write the values on the axes below given the following scales:\n"
+        f"- The interval for the x-axis is {format_scale(x_scale)}\n"
+        f"- The interval for the y-axis is {format_scale(y_scale)}\n"
+        f"- There are {intervals} intervals on each axis, starting at 0.\n"
+        f"Question: List the values on the x-axis and y-axis at each interval."
+    )
+
+    # Calculate the values for each axis
+    x_values = [round(x_scale * i, 5) for i in range(intervals + 1)]
+    y_values = [round(y_scale * i, 5) for i in range(intervals + 1)]
+
+    return question_text, x_values, y_values
+
+def main():
+    print("Cartesian Coordinate Grid Scale Identification Quiz\n")
+
+    # 2 questions in Quadrant 1 only
+    for i in range(1, 3):
+        question, x_scale, y_scale = generate_question(quadrants=1)
+        print(f"Question {i}:\n{question}\n")
+
+    # 3 questions in all four quadrants
+    for i in range(3, 6):
+        question, x_scale, y_scale = generate_question(quadrants=4)
+        print(f"Question {i}:\n{question}\n")
+
+    # 2 questions asking for axis values given scales
+    for i in range(6, 8):
+        question, x_values, y_values = generate_axis_values_question()
+        print(f"Question {i}:\n{question}\n")
+        print(f"Sample answer format:\n- x-axis values: {x_values}\n- y-axis values: {y_values}\n")
+
+if __name__ == "__main__":
+    main()
